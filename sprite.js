@@ -83,6 +83,96 @@ var PIX = (function (my) {
         sprite.num_frames++;
     };
 
+
+    /**
+     * this function replaces the background that was saved from where a sprite
+     * was going to be placed
+     * @param sprite
+     */
+    my.SPR_EraseSprite = function(sprite) {
+
+        //replace the background that was behind the sprite
+        var work_back;
+        var work_offset=0,offset,y;
+
+        // alias a pointer to sprite background for ease of access
+        work_back = sprite.background.buffer;
+
+        // compute offset of background in video buffer
+        offset = (sprite.y * byte_SCREEN_WIDTH) + (sprite.x * 4); //sprite x converted to bytes
+
+        for (y=0; y<SPRITE_HEIGHT; y++)
+        {
+            // copy the next row out off screen buffer into sprite background buffer
+            memcpy(VIDEO_BUFFER,offset,work_back,work_offset,byte_SPRITE_WIDTH);
+
+            // move to next line in video buffer and in sprite background buffer
+            offset      += byte_SCREEN_WIDTH;
+            work_offset += byte_SPRITE_WIDTH;
+        }
+    };
+
+    /**
+     * this function scans the background behind a sprite so that when the sprite
+     * is drawn, the background isn't obliterated
+     * @param sprite
+     */
+    my.SPR_BehindSprite = function(sprite) {
+
+        var work_back;
+        var work_offset=0,offset,y;
+
+        // alias a pointer to sprite background for ease of access
+        work_back = sprite.background.buffer;
+
+        // compute offset of background in video buffer
+        offset = (sprite.y * byte_SCREEN_WIDTH) + (sprite.x * 4); // sprite.x converted to bytes
+
+        for (y=0; y<SPRITE_HEIGHT; y++)
+        {
+            // copy the next row out off screen buffer into sprite background buffer
+            memcpy(work_back, work_offset, VIDEO_BUFFER, offset , byte_SPRITE_WIDTH);
+
+            // move to next line in video buffer and in sprite background buffer
+            offset      += byte_SCREEN_WIDTH;
+            work_offset += byte_SPRITE_WIDTH;
+
+        } // end for y
+    };
+
+    /**
+     * this function draws a sprite on the screen checks for 0 and if found does not draw
+     * @param sprite - sprite object to draw - the frame drawn depends on the sprite.curr_frame value
+     */
+    my.SPR_DrawSprite = function(sprite) {
+
+        var work_img;
+        var work_offset=0,offset,x,y;
+        var data;
+
+        // get a pointer to frame img buffer
+        work_img = sprite.frames[sprite.curr_frame];
+
+        // compute offset of sprite in video buffer
+        offset = (sprite.y * 320) + sprite.x;
+
+        for (y=0; y<SPRITE_HEIGHT; y++)
+        {
+            for (x=0; x<SPRITE_WIDTH; x++)
+            {
+                // test for transparent pixel i.e. 0, if not transparent then draw
+                data=work_img[work_offset+x];
+                if (data) {
+                    RGB_VIEW[offset+x] = data; // 32 bit buffer
+                }
+            }
+
+            // move to next line in video buffer and in sprite bitmap buffer
+            offset      += SCREEN_WIDTH;
+            work_offset += SPRITE_WIDTH;
+        }
+    };
+
     return my;
 }(PIX));
 
