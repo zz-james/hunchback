@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Canvas</title>
+    <script language="javascript">
+    window.requestAnimFrame = (function(){
+        return  window.requestAnimationFrame       ||
+                window.webkitRequestAnimationFrame ||
+                window.mozRequestAnimationFrame    ||
+                window.oRequestAnimationFrame      ||
+                window.msRequestAnimationFrame     ||
+                function(/* function */ callback, /* DOMElement */ element){
+                    window.setTimeout(callback, 1000 / 60);
+                };
+    })();
+    </script>
+</head>
+<body style="background-color: #883333;color:#fff" id="bod" >
+Users with Linux and Firefox, if you are experiencing a long delay see below.
+  <canvas id="canvas" width="640" height="480" style="border: 1px solid red"></canvas>
+<p>this is because your graphics renderer is outside firefox and communicating
+    with it is slow. To speed it canvas up please go type 'about:config' into your address bar
+    (without the surrounding single quotes) then find gfx.xrender.enabled and set to false, then
+    restart the browser. Thank You.</p>
+  <script language="javascript" src="surfaces.js"></script>
+  <script language="javascript" src="image.js"></script>
+  <script language="javascript" src="sprite.js"></script>
+  <script language="javascript" src="keys.js"></script>
+  <script language="javascript" src="background.js"></script>
+  <script language="javascript" src="layers.js"></script>
+  <script language="javascript" src="particle.js"></script>
+  <script language="javascript" src="hunchback.js"></script>
+  <script language="javascript">ready();</script>
+</body>
+</html>
