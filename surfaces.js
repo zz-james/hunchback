@@ -35,10 +35,13 @@ var PIX = (function() {
     var _little_endian = new Int8Array(new Int16Array([1]).buffer)[0] > 0;
     var _ctx; // holds context object
     var _imageData; // typed array holding context image data
-    var _byteSurfaceWidth; // surface width in bytes is 4 x width in pixels as each pixel is 4 bytes
-    var _surfaceWidth; // surface width in pixels
-    var _surfaceHeight; // surface height in pixels
-    var _mainBuffer; // surface that we can flip to canvas
+    var _canvasView; // 8 bit aligned for assigning to canvas
+    my.byteMainBufferWidth; // surface width in bytes is 4 x width in pixels as each pixel is 4 bytes
+    my.mainBufferWidth; // surface width in pixels
+    my.mainBufferHeight; // surface height in pixels
+    my.mainBuffer; // surface that we can flip to canvas
+    my.rgbView;
+
     var _tix = new Date().getTime();
     /**
      * initialises the pix_elf library
@@ -60,10 +63,12 @@ var PIX = (function() {
 
 
         _imageData = _ctx.getImageData(0, 0, w, h);
-        _byteSurfaceWidth = w << 2; // w * 4
-        _surfaceHeight = h;
-        _surfaceWidth = w;
-        _mainBuffer =  new ArrayBuffer(_byteSurfaceWidth * _surfaceHeight);
+        my.byteMainBufferWidth = w << 2; // w * 4
+        my.mainBufferHeight = h;
+        my.mainBufferWidth = w;
+        my.mainBuffer =  new ArrayBuffer(my.byteMainBufferWidth * my.mainBufferHeight);
+        my.rgbView = new Uint32Array(my.mainBuffer); // 32 bit aligned for quick 32bit RGB writes
+        _canvasView = new Uint8ClampedArray(my.mainBuffer);  // 8 bit aligned for assigning to canvas
         // and return true
         return true;
 
@@ -143,7 +148,8 @@ var PIX = (function() {
      * copy main buffer to canvas
      */
     my.SURF_Flip = function() {
-        _ctx.putImageData(_mainBuffer, 0, 0)
+        _imageData.data.set(_canvasView);
+        _ctx.putImageData(_imageData, 0, 0)
     };
 
     /**
@@ -177,7 +183,9 @@ var PIX = (function() {
      * @param srcOffset *in bytes!*
      * @param length *in bytes!*
      */
-    var memcpy = function(dst, dstOffset, src, srcOffset, length) {
+    my.memcpy = function(dst, dstOffset, src, srcOffset, length) {
+        //console.log(dstOffset + " " + dst.byteLength);
+
         var dstU8 = new Uint8Array(dst, dstOffset, length);
         var srcU8 = new Uint8Array(src, srcOffset, length);
         dstU8.set(srcU8);

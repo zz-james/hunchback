@@ -12,10 +12,10 @@ var PIX = (function (my) {
      * This routine draws the parallax layers. The order of the
      * functions determines the z-ordering of the layers
      */
-    my.LAY_DrawLayers = function()
+    my.LAY_DrawLayers = function(i)
     {
-        opaqueBlt(BACK_POS);
-        drawTiles(POS,96);
+       my.BAC_opaqueBlt(i);
+       my.TILESCR_DrawTiles(i,196);
     };
 
     return my;
@@ -49,48 +49,49 @@ var PIX = (function (my) {
  * Time: 21:49
  * To change this template use File | Settings | File Templates.
  */
+
 "use strict";
 
 /* Dimensions of the game window. */
-var SCREEN_WIDTH = 640;
-var SCREEN_HEIGHT = 480;
+//var SCREEN_WIDTH = 640;
+//var SCREEN_HEIGHT = 480;
 
 /* Number of particles allowed in the particle system. */
-var MAX_PARTICLES = 10000;
+//var MAX_PARTICLES = 10000;
 
 /* Dimensions of the player's ship. The graphics data must correspond to this. */
-var PLAYER_WIDTH = 96;
-var PLAYER_HEIGHT = 96;
+//var PLAYER_WIDTH = 96;
+//var PLAYER_HEIGHT = 96;
 
 /* Dimensions of the map tiles. */
-var TILE_WIDTH = 64;
-var TILE_HEIGHT = 64;
+//var TILE_WIDTH = 64;
+//var TILE_HEIGHT = 64;
 
 /* Total size (in pixels) of the complete playfield. */
-var WORLD_WIDTH = 2000;
-var WORLD_HEIGHT = 2000;
+//var WORLD_WIDTH = 2000;
+//var WORLD_HEIGHT = 2000;
 
 /* Limits on the player. */
-var PLAYER_MAX_VELOCITY = (15.0);
-var PLAYER_MIN_VELOCITY	= (-5.0);
+//var PLAYER_MAX_VELOCITY = (15.0);
+//var PLAYER_MIN_VELOCITY	= (-5.0);
 
-var PLAYER_FORWARD_THRUST = (3);
-var PLAYER_REVERSE_THRUST = (-2);
+//var PLAYER_FORWARD_THRUST = (3);
+//var PLAYER_REVERSE_THRUST = (-2);
 
 /* These define the scrolling speeds of the front and back background
  layers, relative to the movement of the camera. */
-var PARALLAX_BACK_FACTOR = 4;
-var PARALLAX_FRONT_FACTOR = 2;
+//var PARALLAX_BACK_FACTOR = 4;
+//var PARALLAX_FRONT_FACTOR = 2;
 
 /* These define the sizes of the background tile grids. We don't really need a one to one
  mapping between the size of the playing field and the size of the tile grids;
  we can wrap around at some point, and nobody will notice a difference. */
-var PARALLAX_GRID_WIDTH = 100;
-var PARALLAX_GRID_HEIGHT = 100;
+//var PARALLAX_GRID_WIDTH = 100;
+//var PARALLAX_GRID_HEIGHT = 100;
 
 /* Two-dimensional arrays for storing the world's tiles (by index). */
-var front_tiles = createArray(PARALLAX_GRID_WIDTH, PARALLAX_GRID_HEIGHT);
-var back_tiles  = createArray(PARALLAX_GRID_WIDTH, PARALLAX_GRID_HEIGHT);
+//var front_tiles = createArray(PARALLAX_GRID_WIDTH, PARALLAX_GRID_HEIGHT);
+//var back_tiles  = createArray(PARALLAX_GRID_WIDTH, PARALLAX_GRID_HEIGHT);
 
 /**
  * Initializes the background drawing system.

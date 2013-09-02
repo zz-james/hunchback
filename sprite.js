@@ -13,7 +13,7 @@ var PIX = (function (my) {
      * @param mc
      * @param ms
      */
-    my.SPR_NewSprite = function(x,y,ac,as,mc,ms) {
+    my.SPR_NewSprite = function(x,y,w,h,ac,as,mc,ms,st) {
 
         var sprite = {
             x            : x,
@@ -22,16 +22,16 @@ var PIX = (function (my) {
             y_old        : y,
             x_tile       : (x >> 5),
             y_tile       : (y >> 5),
-            width        : SPRITE_WIDTH,
-            height       : SPRITE_HEIGHT,
+            width        : w,
+            height       : h,
             anim_clock   : ac,
             anim_speed   : as,
             motion_clock : mc,
             motion_speed : ms,
             curr_frame   : 0,
-            state        : SPRITE_DEAD,
+            state        : st,
             num_frames   : 0,
-            background   : new Uint32Array(SPRITE_WIDTH * SPRITE_HEIGHT), //32 bit so use normal sprite_width
+            background   : new Uint32Array(w * h), //32 bit so use normal sprite.width
             frames: []
         };
 
@@ -42,8 +42,8 @@ var PIX = (function (my) {
     /**
      * This function will grab a bitmap from the picture object buffer. it uses the
      * convention that the 320x200 pixel matrix is sub divided into a smaller
-     * matrix of nxn adjacent squares of size SPRITE_HEIGHT X SPRITE_WIDTH
-     * buffers are 32 bit so use normal sprite_width
+     * matrix of nxn adjacent squares of size sprite.height X sprite.width
+     * buffers are 32 bit so use normal sprite.width
      * @param picture - picture object
      * @param sprite - sprite object
      * @param frame - index of 'frames' in the sprite object
@@ -56,25 +56,25 @@ var PIX = (function (my) {
         var sprite_data; // just a useful alias to array members
 
         // first allocate the memory for the sprite in the sprite structure
-        sprite.frames[frame] = new Uint32Array(SPRITE_WIDTH * SPRITE_HEIGHT);
+        sprite.frames[frame] = new Uint32Array(sprite.width * sprite.height);
 
         // create an alias to the sprite frame for ease of access
         var sprite_data = sprite.frames[frame];
 
         // now load the sprite data into the sprite frame array from the picture
-        x_off = (SPRITE_WIDTH+1)  * grab_x + 1;
-        y_off = (SPRITE_HEIGHT+1) * grab_y + 1;
+        x_off = (sprite.width+1)  * grab_x + 1;
+        y_off = (sprite.height+1) * grab_y + 1;
 
         // compute starting y address
-        y_off = y_off * SCREEN_WIDTH;
-
-        for (y=0; y<SPRITE_HEIGHT; y++)
+        y_off = y_off * my.mainBufferWidth;
+        var surface = picture.surface; // cache propery in local
+        for (y=0; y<sprite.height; y++)
         {
-            for (x=0; x<SPRITE_WIDTH; x++)
+            for (x=0; x<sprite.width; x++)
             {
                 // get the next byte of current row and place into next position in
                 // sprite frame data buffer
-                sprite_data[y*SPRITE_WIDTH + x] = picture.rgb_view[y_off + x_off + x];
+                sprite_data[y*sprite.width + x] = surface[y_off + x_off + x];
             }
             // move to next line of picture buffer
             y_off+=320;
@@ -94,21 +94,22 @@ var PIX = (function (my) {
         //replace the background that was behind the sprite
         var work_back;
         var work_offset=0,offset,y;
+        var byte_SPRITE_WIDTH = sprite.width << 2; // 4 bytes per pixel.
 
         // alias a pointer to sprite background for ease of access
         work_back = sprite.background.buffer;
 
         // compute offset of background in video buffer
-        offset = (sprite.y * byte_SCREEN_WIDTH) + (sprite.x * 4); //sprite x converted to bytes
+        offset = (sprite.y * my.byteMainBufferWidth) + (sprite.x << 2); //sprite x converted to bytes
 
-        for (y=0; y<SPRITE_HEIGHT; y++)
+        for (y=0; y< sprite.height; y++)
         {
             // copy the next row out off screen buffer into sprite background buffer
-            memcpy(VIDEO_BUFFER,offset,work_back,work_offset,byte_SPRITE_WIDTH);
+            my.memcpy(my.mainBuffer,offset,work_back,work_offset,byte_SPRITE_WIDTH);
 
             // move to next line in video buffer and in sprite background buffer
-            offset      += byte_SCREEN_WIDTH;
-            work_offset += byte_SPRITE_WIDTH;
+            offset      += my.byteMainBufferWidth;
+            work_offset += my.byteSurfaceHeight;
         }
     };
 
@@ -121,20 +122,20 @@ var PIX = (function (my) {
 
         var work_back;
         var work_offset=0,offset,y;
-
+        var byte_SPRITE_WIDTH = sprite.width << 2;
         // alias a pointer to sprite background for ease of access
         work_back = sprite.background.buffer;
 
         // compute offset of background in video buffer
-        offset = (sprite.y * byte_SCREEN_WIDTH) + (sprite.x * 4); // sprite.x converted to bytes
+        offset = (sprite.y * my.byteMainBufferWidth) + (sprite.x << 2); // sprite.x converted to bytes
 
-        for (y=0; y<SPRITE_HEIGHT; y++)
+        for (y=0; y< sprite.height; y++)
         {
             // copy the next row out off screen buffer into sprite background buffer
-            memcpy(work_back, work_offset, VIDEO_BUFFER, offset , byte_SPRITE_WIDTH);
+            my.memcpy(work_back, work_offset, my.mainBuffer, offset , byte_SPRITE_WIDTH);
 
             // move to next line in video buffer and in sprite background buffer
-            offset      += byte_SCREEN_WIDTH;
+            offset      += my.byteMainBufferWidth;
             work_offset += byte_SPRITE_WIDTH;
 
         } // end for y
@@ -156,9 +157,9 @@ var PIX = (function (my) {
         // compute offset of sprite in video buffer
         offset = (sprite.y * 320) + sprite.x;
 
-        for (y=0; y<SPRITE_HEIGHT; y++)
+        for (y=0; y<sprite.height; y++)
         {
-            for (x=0; x<SPRITE_WIDTH; x++)
+            for (x=0; x<sprite.width; x++)
             {
                 // test for transparent pixel i.e. 0, if not transparent then draw
                 data=work_img[work_offset+x];
@@ -168,8 +169,8 @@ var PIX = (function (my) {
             }
 
             // move to next line in video buffer and in sprite bitmap buffer
-            offset      += SCREEN_WIDTH;
-            work_offset += SPRITE_WIDTH;
+            offset      += my.mainBufferWidth;
+            work_offset += sprite.width;
         }
     };
 
@@ -180,17 +181,17 @@ var PIX = (function (my) {
 
 
 // G L O B A L S  ////////////////////////////////////////////////////////////
-
+  /*
 var MAX_SPRITE_FRAMES = 24;
 var SPRITE_DEAD = 0;
 var SPRITE_ALIVE = 1;
 var SPRITE_DYING = 2;
 
 // declared in image.js
-var SPRITE_WIDTH = 32;
-var SPRITE_HEIGHT = 32;
-var byte_SPRITE_WIDTH = SPRITE_WIDTH * 4; // 4 bytes per pixel.
-
+var sprite.width = 32;
+var sprite.height = 32;
+var byte_SPRITE_WIDTH = sprite.width * 4; // 4 bytes per pixel.
+                                              */
 /**
  * This function initializes a sprite with the sent data
  *
@@ -211,8 +212,8 @@ var spriteFactory = function(x,y,ac,as,mc,ms)
         y_old        : y,
         x_tile       : (x >> 5),
         y_tile       : (y >> 5),
-        width        : SPRITE_WIDTH,
-        height       : SPRITE_HEIGHT,
+        width        : sprite.width,
+        height       : sprite.height,
         anim_clock   : ac,
         anim_speed   : as,
         motion_clock : mc,
@@ -220,7 +221,7 @@ var spriteFactory = function(x,y,ac,as,mc,ms)
         curr_frame   : 0,
         state        : SPRITE_DEAD,
         num_frames   : 0,
-        background   : new Uint32Array(SPRITE_WIDTH * SPRITE_HEIGHT), //32 bit so use normal sprite_width
+        background   : new Uint32Array(SPRITE_WIDTH * sprite.height), //32 bit so use normal sprite.width
         frames: []
     };
 
@@ -258,8 +259,8 @@ var drawSprite = function(sprite) {
         }
 
         // move to next line in video buffer and in sprite bitmap buffer
-        offset      += SCREEN_WIDTH;
-        work_offset += SPRITE_WIDTH;
+        offset      += _mainBufferWidth;
+        work_offset += sprite.width;
     }
 };
 

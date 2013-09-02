@@ -70,6 +70,7 @@ var PIX = (function (my) {
             D_offscreen_context.drawImage(_D_tmpImg,0,0);
             _D_bufferDataContainer[i].buffer.img = _D_tmpImg;
             _D_bufferDataContainer[i].buffer.surface = D_offscreen_context.getImageData(0, 0, width, height);
+            _D_bufferDataContainer[i].buffer.rgb = new Uint32Array(_D_bufferDataContainer[i].buffer.surface.data.buffer);
         }
     };
 
