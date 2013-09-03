@@ -12,10 +12,10 @@ var PIX = (function (my) {
      * This routine draws the parallax layers. The order of the
      * functions determines the z-ordering of the layers
      */
-    my.LAY_DrawLayers = function(i)
+    my.LAY_DrawLayers = function(back_pos,pos)
     {
-       my.BAC_opaqueBlt(i);
-       my.TILESCR_DrawTiles(i,196);
+       my.BAC_opaqueBlt(back_pos);
+       my.TILESCR_DrawTiles(pos,196);
     };
 
     return my;

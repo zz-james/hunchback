@@ -50,34 +50,38 @@ var PIX = (function (my) {
      * @param grab_x - x point in pixels to start grabbing from the picture buffer
      * @param grab_y - y point in pixels to start grabbing from the picture buffer
      */
-    my.SPR_GrabBitmap = function(picture, sprite, frame, grab_x, grab_y) {
-
+    my.SPR_GrabBitmap = function(spritesheet, sprite, frame, grab_x, grab_y) {
+        var pixels = spritesheet.rgb;
+        var sheet_width = spritesheet.surface.width;
         var x_off,y_off, x,y;
         var sprite_data; // just a useful alias to array members
+        var sprite_height = sprite.height; // cache property as a local
+        var sprite_width = sprite.width;
+
 
         // first allocate the memory for the sprite in the sprite structure
-        sprite.frames[frame] = new Uint32Array(sprite.width * sprite.height);
+        sprite.frames[frame] = new Uint32Array(sprite_width * sprite_height);
 
         // create an alias to the sprite frame for ease of access
-        var sprite_data = sprite.frames[frame];
+        sprite_data = sprite.frames[frame];
 
         // now load the sprite data into the sprite frame array from the picture
-        x_off = (sprite.width+1)  * grab_x + 1;
-        y_off = (sprite.height+1) * grab_y + 1;
+        x_off = (sprite_width+1)  * grab_x + 1;
+        y_off = (sprite_height+1) * grab_y + 1;
 
         // compute starting y address
-        y_off = y_off * my.mainBufferWidth;
-        var surface = picture.surface; // cache propery in local
-        for (y=0; y<sprite.height; y++)
+        y_off = y_off * sheet_width;
+
+        for (y=0; y<sprite_height; y++)
         {
-            for (x=0; x<sprite.width; x++)
+            for (x=0; x<sprite_width; x++)
             {
                 // get the next byte of current row and place into next position in
                 // sprite frame data buffer
-                sprite_data[y*sprite.width + x] = surface[y_off + x_off + x];
+                sprite_data[y*sprite_width + x] = pixels[y_off + x_off + x];
             }
             // move to next line of picture buffer
-            y_off+=320;
+            y_off+=sheet_width;
         }
         // increment number of frames
         sprite.num_frames++;
@@ -109,7 +113,7 @@ var PIX = (function (my) {
 
             // move to next line in video buffer and in sprite background buffer
             offset      += my.byteMainBufferWidth;
-            work_offset += my.byteSurfaceHeight;
+            work_offset += byte_SPRITE_WIDTH;
         }
     };
 
@@ -164,7 +168,7 @@ var PIX = (function (my) {
                 // test for transparent pixel i.e. 0, if not transparent then draw
                 data=work_img[work_offset+x];
                 if (data) {
-                    RGB_VIEW[offset+x] = data; // 32 bit buffer
+                    my.rgbView[offset+x] = data; // 32 bit buffer
                 }
             }
 

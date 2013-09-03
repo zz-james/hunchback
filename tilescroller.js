@@ -35,6 +35,11 @@ var PIX = (function (my) {
         _totalScroll = (cols * width) - my.mainBufferWidth;
     };
 
+    // getter for total scroll
+    my.TILESCR_GetTotalScroll = function() {
+        return _totalScroll;
+    };
+
     /**
      * draws a screen full of tiles.
      * @param xPos is the left corner x location within the 'virtual screen'.

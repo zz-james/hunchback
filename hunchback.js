@@ -7,13 +7,15 @@
 "use strict";
 
 var TILE_SHEET;
+var TOTAL_SCROLL;
 var TILES;
 var screen;
 var robopunk;
 var BG;
-var done = 1;
+var done = 0;
 var i = 0;
-var POS = 0 | 0; // the position of the tile layer
+var POS = 0 | 0; // the position of robopunk
+var BACK_POS = 0 | 0;  // the position of the tile layer
 
 /* --------------- FUNCTIONS / HANDLERS ETC ---------------- */
 
@@ -67,7 +69,7 @@ var onImagesLoaded = function() {
 
 var initPlayer = function() {
     // create a sprite for robopunk
-    robopunk = PIX.SPR_NewSprite(0,0,32,32,0,0,0,0,0);
+    robopunk = PIX.SPR_NewSprite(0,395,32,32,0,0,0,0,0);  // sprite object
 
     // extract animation cells for robopunk
     PIX.SPR_GrabBitmap(TILE_SHEET,robopunk,0,3,0);
@@ -92,11 +94,12 @@ var initBackground = function() {
     } // end for index
 
     PIX.TILESCR_Init(TILES,32,32,3,132); // initialise the tile scroller
+    TOTAL_SCROLL = PIX.TILESCR_GetTotalScroll();
 };
 
 
 
-var mainLoop = function() {
+var OLDmainLoop = function() {
 
     PIX.LAY_DrawLayers(i); // draw parallax layer(s) in RGB_VIEW
     PIX.SURF_Flip();
@@ -111,7 +114,7 @@ var mainLoop = function() {
 /**
  * this is the game loop
  */
-var OLDmainLoop = function() {
+var mainLoop = function() {
     // erase robopunk
     PIX.SPR_EraseSprite(robopunk);
 
@@ -119,11 +122,12 @@ var OLDmainLoop = function() {
     var pressed = PIX.KEY_GetKeyState();
 
     // has the user pressed a key?
-    if(pressed.length)
+    if(Object.keys(pressed).length)
     {
+
         // test what key was pressed
         if(pressed[39]){
-            checkCollisions((POS+32)>>5); // this expression yeilds x component for tilemap look up
+            //checkCollisions((POS+32)>>5); // this expression yeilds x component for tilemap look up
             //TILE_MAP[((POS+32) >>5 )] != 4
             (POS  += 8) | 0;
 
@@ -200,7 +204,7 @@ var OLDmainLoop = function() {
         }
     }
 
-    PIX.LAY_DrawLayers(); // draw parallax layer(s) in RGB_VIEW
+    PIX.LAY_DrawLayers(BACK_POS,POS); // draw parallax layer(s) in RGB_VIEW
 
     // scan background under robopunk
 
